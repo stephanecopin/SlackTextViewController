@@ -38,7 +38,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 }
 
 // The shared scrollView pointer, either a tableView or collectionView
-@property (nonatomic, weak) UIScrollView *scrollViewProxy;
+@property (nonatomic, strong) UIScrollView *scrollViewProxy;
 
 // A hairline displayed on top of the auto-completion view, to better separate the content from the control.
 @property (nonatomic, strong) UIView *autoCompletionHairline;
@@ -99,7 +99,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     
     if (self = [super initWithNibName:nil bundle:nil])
     {
-        self.scrollViewProxy = [self tableViewWithStyle:style];
+        self.scrollViewProxy = [[UITableView alloc] initWithFrame:CGRectZero style:style];
         [self slk_commonInit];
     }
     return self;
@@ -111,7 +111,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     
     if (self = [super initWithNibName:nil bundle:nil])
     {
-        self.scrollViewProxy = [self collectionViewWithLayout:layout];
+        self.scrollViewProxy = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
         [self slk_commonInit];
     }
     return self;
@@ -138,14 +138,20 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     
     if (self = [super initWithCoder:decoder])
     {
-        UITableViewStyle tableViewStyle = [[self class] tableViewStyleForCoder:decoder];
-        UICollectionViewLayout *collectionViewLayout = [[self class] collectionViewLayoutForCoder:decoder];
+        UIScrollView * scrollView = [[self class] scrollViewForCoder:decoder];
         
-        if ([collectionViewLayout isKindOfClass:[UICollectionViewLayout class]]) {
-            self.scrollViewProxy = [self collectionViewWithLayout:collectionViewLayout];
-        }
-        else {
-            self.scrollViewProxy = [self tableViewWithStyle:tableViewStyle];
+        if (scrollView == nil) {
+            UICollectionViewLayout *collectionViewLayout = [[self class] collectionViewLayoutForCoder:decoder];
+            if ([collectionViewLayout isKindOfClass:[UICollectionViewLayout class]]) {
+                self.scrollViewProxy = [[UICollectionView alloc] initWithFrame:CGRectZero
+                                                          collectionViewLayout:collectionViewLayout];
+            } else {
+                UITableViewStyle tableViewStyle = [[self class] tableViewStyleForCoder:decoder];
+                self.scrollViewProxy = [[UITableView alloc] initWithFrame:CGRectZero
+                                                                    style:tableViewStyle];
+            }
+        } else {
+            self.scrollViewProxy = scrollView;
         }
         
         [self slk_commonInit];
@@ -253,29 +259,8 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     return nil;
 }
 
-- (UITableView *)tableViewWithStyle:(UITableViewStyle)style
-{
-    if (!_tableView) {
-        _tableView = [[UITableView alloc] initWithFrame:CGRectZero style:style];
-        _tableView.translatesAutoresizingMaskIntoConstraints = NO;
-        _tableView.scrollsToTop = YES;
-        _tableView.dataSource = self;
-        _tableView.delegate = self;
-        _tableView.clipsToBounds = NO;
-    }
-    return _tableView;
-}
-
-- (UICollectionView *)collectionViewWithLayout:(UICollectionViewLayout *)layout
-{
-    if (!_collectionView) {
-        _collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
-        _collectionView.translatesAutoresizingMaskIntoConstraints = NO;
-        _collectionView.scrollsToTop = YES;
-        _collectionView.dataSource = self;
-        _collectionView.delegate = self;
-    }
-    return _collectionView;
++ (UIScrollView *)scrollViewForCoder:(id)decoder {
+    return nil;
 }
 
 - (UITableView *)autoCompletionView
@@ -489,6 +474,23 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     if ([_scrollViewProxy isEqual:scrollView]) {
         return;
     }
+    
+    if ([scrollView isKindOfClass:[UICollectionView class]]) {
+        UICollectionView * collectionView = (UICollectionView *)scrollView;
+        collectionView.dataSource = self;
+        collectionView.delegate = self;
+        _collectionView = collectionView;
+    } else if ([scrollView isKindOfClass:[UITableView class]]) {
+        UITableView * tableView = (UITableView *)scrollView;
+        tableView.dataSource = self;
+        tableView.delegate = self;
+        _tableView = tableView;
+    } else {
+        _scrollView = scrollView;
+    }
+    
+    scrollView.translatesAutoresizingMaskIntoConstraints = NO;
+    scrollView.scrollsToTop = YES;
     
     _singleTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(slk_didTapScrollView:)];
     _singleTapGesture.delegate = self;
