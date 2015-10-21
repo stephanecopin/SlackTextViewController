@@ -41,6 +41,25 @@
 - (void)slk_animateLayoutIfNeededWithDuration:(NSTimeInterval)duration bounce:(BOOL)bounce options:(UIViewAnimationOptions)options animations:(void (^)(void))animations completion:(void (^)(BOOL finished))completion;
 
 /**
+ Execute an animation related to the view. the `animations` block should not be empty or nil.
+ 
+ @param bounce YES if the animation should use spring damping and velocity to give a bouncy effect to animations.
+ @param options A mask of options indicating how you want to perform the animations.
+ @param animations An additional block for custom animations.
+ */
+- (void)slk_animateWithBounce:(BOOL)bounce options:(UIViewAnimationOptions)options animations:(void (^)(void))animations completion:(void (^)(BOOL))completion;
+
+/**
+ Execute an animation related to the view. the `animations` block should not be empty or nil.
+ 
+ @param duration The total duration of the animations, measured in seconds.
+ @param bounce YES if the animation should use spring damping and velocity to give a bouncy effect to animations.
+ @param options A mask of options indicating how you want to perform the animations.
+ @param animations An additional block for custom animations.
+ */
+- (void)slk_animateWithDuration:(NSTimeInterval)duration bounce:(BOOL)bounce options:(UIViewAnimationOptions)options animations:(void (^)(void))animations completion:(void (^)(BOOL finished))completion;
+
+/**
  Returns the view constraints matching a specific layout attribute (top, bottom, left, right, leading, trailing, etc.)
  
  @param attribute The layout attribute to use for searching.

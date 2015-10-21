@@ -18,6 +18,10 @@
 
 #import "SLKUIConstants.h"
 
+NSTimeInterval slk_durationForBounceParameter(BOOL bounce) {
+    return bounce ? 0.65 : 0.2;
+}
+
 @implementation UIView (SLKAdditions)
 
 - (void)slk_animateLayoutIfNeededWithBounce:(BOOL)bounce options:(UIViewAnimationOptions)options animations:(void (^)(void))animations
@@ -27,38 +31,42 @@
 
 - (void)slk_animateLayoutIfNeededWithBounce:(BOOL)bounce options:(UIViewAnimationOptions)options animations:(void (^)(void))animations completion:(void (^)(BOOL finished))completion
 {
-    NSTimeInterval duration = bounce ? 0.65 : 0.2;
-    [self slk_animateLayoutIfNeededWithDuration:duration bounce:bounce options:options animations:animations completion:completion];
+    [self slk_animateLayoutIfNeededWithDuration:slk_durationForBounceParameter(bounce) bounce:bounce options:options animations:animations completion:completion];
 }
 
 - (void)slk_animateLayoutIfNeededWithDuration:(NSTimeInterval)duration bounce:(BOOL)bounce options:(UIViewAnimationOptions)options animations:(void (^)(void))animations completion:(void (^)(BOOL finished))completion
 {
+    [self slk_animateWithDuration:duration
+                           bounce:bounce
+                          options:options
+                       animations:^{
+                           if (animations) {
+                               animations();
+                           }
+												 
+                           [self layoutIfNeeded];
+                       } completion:completion];
+}
+
+- (void)slk_animateWithBounce:(BOOL)bounce options:(UIViewAnimationOptions)options animations:(void (^)(void))animations completion:(void (^)(BOOL))completion {
+    [self slk_animateWithDuration:slk_durationForBounceParameter(bounce) bounce:bounce options:options animations:animations completion:completion];
+}
+
+- (void)slk_animateWithDuration:(NSTimeInterval)duration bounce:(BOOL)bounce options:(UIViewAnimationOptions)options animations:(void (^)(void))animations completion:(void (^)(BOOL))completion {
     if (bounce) {
         [UIView animateWithDuration:duration
                               delay:0.0
              usingSpringWithDamping:0.7
               initialSpringVelocity:0.7
                             options:options
-                         animations:^{
-                             [self layoutIfNeeded];
-                             
-                             if (animations) {
-                                 animations();
-                             }
-                         }
+                         animations:animations
                          completion:completion];
     }
     else {
         [UIView animateWithDuration:duration
                               delay:0.0
                             options:options
-                         animations:^{
-                             [self layoutIfNeeded];
-                             
-                             if (animations) {
-                                 animations();
-                             }
-                         }
+                         animations:animations
                          completion:completion];
     }
 }
