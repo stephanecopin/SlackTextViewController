@@ -183,6 +183,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  */
 + (UICollectionViewLayout *)collectionViewLayoutForCoder:(NSCoder *)decoder;
 
++ (UIScrollView *)scrollViewForCoder:(NSCoder *)decoder;
 
 #pragma mark - Keyboard Handling
 ///------------------------------------------------
