@@ -44,7 +44,6 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 @property (nonatomic, strong) UIView *autoCompletionHairline;
 
 // Auto-Layout height constraints used for updating their constants
-@property (nonatomic, strong) NSLayoutConstraint *scrollViewHC;
 @property (nonatomic, strong) NSLayoutConstraint *textInputbarHC;
 @property (nonatomic, strong) NSLayoutConstraint *typingIndicatorViewHC;
 @property (nonatomic, strong) NSLayoutConstraint *autoCompletionViewHC;
@@ -404,17 +403,9 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     return keyboardHeight;
 }
 
-- (CGFloat)slk_appropriateScrollViewHeight
+- (CGFloat)slk_appropriateScrollViewBottomInset
 {
-    CGFloat scrollViewHeight = CGRectGetHeight(self.view.bounds);
-    
-    scrollViewHeight -= self.keyboardHC.constant;
-    scrollViewHeight -= self.textInputbarHC.constant;
-    scrollViewHeight -= self.autoCompletionViewHC.constant;
-    scrollViewHeight -= self.typingIndicatorViewHC.constant;
-    
-    if (scrollViewHeight < 0) return 0;
-    else return scrollViewHeight;
+    return self.textInputbarHC.constant + self.keyboardHC.constant + self.autoCompletionViewHC.constant + self.typingIndicatorViewHC.constant;
 }
 
 - (CGFloat)slk_topBarsHeight
@@ -631,7 +622,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     if (inputbarHeight != self.textInputbarHC.constant)
     {
         self.textInputbarHC.constant = inputbarHeight;
-        self.scrollViewHC.constant = [self slk_appropriateScrollViewHeight];
+        [self slk_adjustScrollViewProxyContentInsetsAndContentOffset:YES];
         
         if (animated) {
             
@@ -776,7 +767,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     CGFloat maxiumumHeight = SLKAutoCompletionViewDefaultHeight;
     
     if (self.isAutoCompleting) {
-        CGFloat scrollViewHeight = self.scrollViewHC.constant;
+        CGFloat scrollViewHeight = self.scrollViewProxy.bounds.size.height - [self slk_appropriateScrollViewBottomInset];
         scrollViewHeight -= [self slk_topBarsHeight];
         
         if (scrollViewHeight < maxiumumHeight) {
@@ -816,7 +807,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     }
     
     _textInputbarHidden = hidden;
-
+    
     __weak typeof(self) weakSelf = self;
     
     void (^animations)() = ^void(){
@@ -850,7 +841,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     if (!self.view.window || !self.keyboardPanningEnabled || [self ignoreTextInputbarAdjustment] || self.isPresentedInPopover) {
         return;
     }
-
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         [self slk_handlePanGestureRecognizer:gesture];
     });
@@ -873,7 +864,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     CGFloat keyboardMaxY = CGRectGetHeight(SLKKeyWindowBounds());
     CGFloat keyboardMinY = keyboardMaxY - CGRectGetHeight(keyboardView.frame);
     
-
+    
     // Skips this if it's not the expected textView.
     // Checking the keyboard height constant helps to disable the view constraints update on iPad when the keyboard is undocked.
     // Checking the keyboard status allows to keep the inputAccessoryView valid when still reacing the bottom of the screen.
@@ -896,7 +887,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
         return;
 #endif
     }
-
+    
     switch (gesture.state) {
         case UIGestureRecognizerStateBegan: {
             
@@ -953,9 +944,9 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
                 
                 keyboardView.frame = keyboardFrame;
                 
-                
                 self.keyboardHC.constant = [self slk_appropriateKeyboardHeightFromRect:keyboardFrame];
-                self.scrollViewHC.constant = [self slk_appropriateScrollViewHeight];
+                [self slk_adjustScrollViewProxyContentInsetsAndContentOffset:YES
+                 ];
                 
                 // layoutIfNeeded must be called before any further scrollView internal adjustments (content offset and size)
                 [self.view layoutIfNeeded];
@@ -1004,7 +995,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
             if (hide) keyboardFrame.origin.y = keyboardMaxY;
             
             self.keyboardHC.constant = [self slk_appropriateKeyboardHeightFromRect:keyboardFrame];
-            self.scrollViewHC.constant = [self slk_appropriateScrollViewHeight];
+            [self slk_adjustScrollViewProxyContentInsetsAndContentOffset:YES];
             
             [UIView animateWithDuration:0.25
                                   delay:0.0
@@ -1029,7 +1020,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
             
             break;
         }
-    
+            
         default:
             break;
     }
@@ -1142,7 +1133,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     }
     
     self.keyboardHC.constant = 0.0;
-    self.scrollViewHC.constant = [self slk_appropriateScrollViewHeight];
+    [self slk_adjustScrollViewProxyContentInsetsAndContentOffset:YES];
     
     [self slk_hideAutoCompletionViewIfNeeded];
     
@@ -1208,15 +1199,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 
 - (void)slk_adjustContentConfigurationIfNeeded
 {
-    // When inverted, we need to substract the top bars height (generally status bar + navigation bar's) to align the top of the
-    // scrollView correctly to its top edge.
-    if (self.inverted) {
-        UIEdgeInsets contentInset = self.scrollViewProxy.contentInset;
-        contentInset.bottom = [self slk_topBarsHeight];
-        
-        self.scrollViewProxy.contentInset = contentInset;
-        self.scrollViewProxy.scrollIndicatorInsets = contentInset;
-    }
+    [self slk_adjustScrollViewProxyContentInsetsAndContentOffset:YES];
     
     // Substracts the bottom edge rect if present. This fixes the text input layout when using inside of a view controller container
     // such as a UITabBarController or a custom container.
@@ -1245,6 +1228,50 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     });
 }
 
+- (void)slk_adjustScrollViewProxyContentInsetsAndContentOffset:(BOOL)adjustsContentOffset {
+    // When inverted, we need to substract the top bars height (generally status bar + navigation bar's) to align the top of the
+    // scrollView correctly to its top edge.
+    [self slk_adjustScrollViewProxyBottomContentInset:[self slk_appropriateScrollViewBottomInset]
+                                     topContentInsets:self.inverted ? [self slk_topBarsHeight] : 0.0
+                                 adjustsContentOffset:adjustsContentOffset];
+}
+
+- (void)slk_adjustScrollViewProxyBottomContentInset:(CGFloat)bottomContentInset topContentInsets:(CGFloat)topContentInset adjustsContentOffset:(BOOL)adjustsContentOffset {
+    UIEdgeInsets (^ adjustedInsets)(UIEdgeInsets) = ^(UIEdgeInsets insets) {
+        if (self.inverted) {
+            insets.top += bottomContentInset;
+            insets.bottom += topContentInset;
+        } else {
+            insets.top += topContentInset;
+            insets.bottom += bottomContentInset;
+        }
+        return insets;
+    };
+    UIEdgeInsets oldInsets = self.scrollViewProxy.contentInset;
+    self.scrollViewProxy.contentInset = adjustedInsets(self.viewContentInsets);
+    self.scrollViewProxy.scrollIndicatorInsets = adjustedInsets(self.viewScrollIndicatorInsets);
+    
+    CGFloat contentOffsetOffset;
+    if(self.inverted) {
+        contentOffsetOffset = oldInsets.top - self.scrollViewProxy.contentInset.top;
+    } else {
+        contentOffsetOffset = oldInsets.bottom - self.scrollViewProxy.contentInset.bottom;
+    }
+    if(contentOffsetOffset != 0.0 && adjustsContentOffset) {
+        CGPoint contentOffset = self.scrollViewProxy.contentOffset;
+        if(self.inverted) {
+            contentOffset.y += contentOffsetOffset;
+        } else {
+            contentOffset.y -= contentOffsetOffset;
+        }
+        [self.view slk_animateWithBounce:self.bounces
+                                 options:UIViewAnimationOptionCurveEaseInOut
+                              animations:^{
+                                  [self.scrollViewProxy setContentOffset:contentOffset animated:NO];
+                              }
+                              completion:nil];
+    }
+}
 
 #pragma mark - Keyboard Events
 
@@ -1325,7 +1352,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     
     // Updates the height constraints' constants
     self.keyboardHC.constant = [self slk_appropriateKeyboardHeightFromNotification:notification];
-    self.scrollViewHC.constant = [self slk_appropriateScrollViewHeight];
+    [self slk_adjustScrollViewProxyContentInsetsAndContentOffset:status == SLKKeyboardStatusWillShow];
     
     // Updates and notifies about the keyboard status update
     if ([self slk_updateKeyboardStatus:status]) {
@@ -1487,9 +1514,8 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     
     CGFloat systemLayoutSizeHeight = [typingIndicatorView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize].height;
     CGFloat height = typingIndicatorView.isVisible ? systemLayoutSizeHeight : 0.0;
-    
     self.typingIndicatorViewHC.constant = height;
-    self.scrollViewHC.constant -= height;
+    [self slk_adjustScrollViewProxyContentInsetsAndContentOffset:YES];
     
     if (typingIndicatorView.isVisible) {
         typingIndicatorView.hidden = NO;
@@ -1588,7 +1614,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
         viewHeight = maximumHeight;
     }
     
-    CGFloat contentViewHeight = self.scrollViewHC.constant + self.autoCompletionViewHC.constant;
+    CGFloat contentViewHeight = self.scrollViewProxy.bounds.size.height - [self slk_appropriateScrollViewBottomInset] + self.autoCompletionViewHC.constant;
     
     // On iPhone, the auto-completion view can't extend beyond the content view height
     if (SLK_IS_IPHONE && viewHeight > contentViewHeight) {
@@ -1766,7 +1792,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 - (void)slk_cacheTextToDisk:(NSString *)text
 {
     NSString *key = [self slk_keyForPersistency];
-
+    
     if (!key || key.length == 0) {
         return;
     }
@@ -1970,20 +1996,20 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
                             @"textInputbar": self.textInputbar,
                             };
     
-    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[scrollView(0@750)][autoCompletionView(0@750)][typingIndicatorView(0)]-0@999-[textInputbar(==0)]-0-|" options:0 metrics:nil views:views]];
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[scrollView]|" options:0 metrics:nil views:views]];
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[autoCompletionView(0)][typingIndicatorView(0)]-0-[textInputbar(==0)]-0-|" options:0 metrics:nil views:views]];
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[scrollView]|" options:0 metrics:nil views:views]];
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[autoCompletionView]|" options:0 metrics:nil views:views]];
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[typingIndicatorView]|" options:0 metrics:nil views:views]];
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[textInputbar]|" options:0 metrics:nil views:views]];
     
-    self.scrollViewHC = [self.view slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.scrollViewProxy secondItem:nil];
     self.autoCompletionViewHC = [self.view slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.autoCompletionView secondItem:nil];
     self.typingIndicatorViewHC = [self.view slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.typingIndicatorProxyView secondItem:nil];
     self.textInputbarHC = [self.view slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.textInputbar secondItem:nil];
     self.keyboardHC = [self.view slk_constraintForAttribute:NSLayoutAttributeBottom firstItem:self.view secondItem:self.textInputbar];
     
     self.textInputbarHC.constant = self.textInputbar.minimumInputbarHeight;
-    self.scrollViewHC.constant = [self slk_appropriateScrollViewHeight];
+    [self slk_adjustScrollViewProxyContentInsetsAndContentOffset:YES];
     
     if (self.textInputbar.isEditing) {
         self.textInputbarHC.constant += self.textInputbar.editorContentViewHeight;
@@ -2001,7 +2027,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     [keyboardCommands addObject:[self slk_escKeyCommand]];
     [keyboardCommands addObject:[self slk_arrowKeyCommand:UIKeyInputUpArrow]];
     [keyboardCommands addObject:[self slk_arrowKeyCommand:UIKeyInputDownArrow]];
-
+    
     return keyboardCommands;
 }
 
@@ -2049,7 +2075,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 - (UIKeyCommand *)slk_arrowKeyCommand:(NSString *)inputUpArrow
 {
     UIKeyCommand *command = [UIKeyCommand keyCommandWithInput:inputUpArrow modifierFlags:0 action:@selector(didPressArrowKey:)];
-
+    
 #ifdef __IPHONE_9_0
     // Only available since iOS 9
     if ([UIKeyCommand respondsToSelector:@selector(keyCommandWithInput:modifierFlags:action:discoverabilityTitle:)] ) {
@@ -2061,7 +2087,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
         }
     }
 #endif
-
+    
     return command;
 }
 
@@ -2150,7 +2176,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     if ([self respondsToSelector:@selector(viewWillTransitionToSize:withTransitionCoordinator:)]) {
         return;
     }
-
+    
     [self slk_prepareForInterfaceTransitionWithDuration:duration];
 }
 #endif
@@ -2206,7 +2232,6 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     _singleTapGesture = nil;
     _verticalPanGesture.delegate = nil;
     _verticalPanGesture = nil;
-    _scrollViewHC = nil;
     _textInputbarHC = nil;
     _typingIndicatorViewHC = nil;
     _autoCompletionViewHC = nil;
@@ -2216,3 +2241,4 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 }
 
 @end
+
