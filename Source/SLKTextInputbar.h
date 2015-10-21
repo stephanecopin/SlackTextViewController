@@ -16,6 +16,8 @@
 
 #import <UIKit/UIKit.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @class SLKTextViewController;
 @class SLKTextView;
 @class SLKInputAccessoryView;
@@ -88,16 +90,16 @@ typedef NS_ENUM(NSUInteger, SLKCounterPosition) {
 ///------------------------------------------------
 
 /** The view displayed on top if the text input bar, containing the button outlets, when editing is enabled. */
-@property (nonatomic, strong) UIView *editorContentView;
+@property (nonatomic, strong, nullable) UIView *editorContentView;
 
 /** The title label displayed in the middle of the accessoryView. */
-@property (nonatomic, strong) UILabel *editorTitle;
+@property (nonatomic, strong, nullable) UILabel *editorTitle;
 
 /** The 'cancel' button displayed left in the accessoryView. */
-@property (nonatomic, strong) UIButton *editorLeftButton;
+@property (nonatomic, strong, nullable) UIButton *editorLeftButton;
 
 /** The 'accept' button displayed right in the accessoryView. */
-@property (nonatomic, strong) UIButton *editorRightButton;
+@property (nonatomic, strong, nullable) UIButton *editorRightButton;
 
 /** The accessory view's maximum height. Default is 38 pts. */
 @property (nonatomic, assign) CGFloat editorContentViewHeight;
@@ -145,9 +147,11 @@ typedef NS_ENUM(NSUInteger, SLKCounterPosition) {
 @property (nonatomic, readonly) BOOL limitExceeded;
 
 /** The normal color used for character counter label. Default is lightGrayColor. */
-@property (nonatomic, strong, readwrite) UIColor *charCountLabelNormalColor;
+@property (nonatomic, strong, readwrite, nullable) UIColor *charCountLabelNormalColor;
 
 /** The color used for character counter label when it has exceeded the limit. Default is redColor. */
-@property (nonatomic, strong, readwrite) UIColor *charCountLabelWarningColor;
+@property (nonatomic, strong, readwrite, nullable) UIColor *charCountLabelWarningColor;
 
 @end
+
+NS_ASSUME_NONNULL_END

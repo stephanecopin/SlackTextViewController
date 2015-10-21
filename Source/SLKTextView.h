@@ -16,6 +16,8 @@
 
 #import <UIKit/UIKit.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 UIKIT_EXTERN NSString * const SLKTextViewTextWillChangeNotification;
 UIKIT_EXTERN NSString * const SLKTextViewContentSizeDidChangeNotification;
 UIKIT_EXTERN NSString * const SLKTextViewSelectedRangeDidChangeNotification;
@@ -43,10 +45,10 @@ typedef NS_OPTIONS(NSUInteger, SLKPastableMediaType) {
 @interface SLKTextView : UITextView
 
 /** The placeholder text string. Default is nil. */
-@property (nonatomic, copy) NSString *placeholder;
+@property (nonatomic, copy, nullable) NSString *placeholder;
 
 /** The placeholder color. Default is lightGrayColor. */
-@property (nonatomic, copy) UIColor *placeholderColor;
+@property (nonatomic, copy, nullable) UIColor *placeholderColor;
 
 /** The maximum number of lines before enabling scrolling. Default is 0 wich means limitless.
  If dynamic type is enabled, the maximum number of lines will be calculated proportionally to the user preferred font size. */
@@ -92,6 +94,8 @@ typedef NS_OPTIONS(NSUInteger, SLKPastableMediaType) {
 /**
  Notifies the text view that the user pressed any arrow key. This is used to move the cursor up and down while having multiple lines.
  */
-- (void)didPressAnyArrowKey:(id)sender;
+- (void)didPressAnyArrowKey:(nullable id)sender;
 
 @end
+
+NS_ASSUME_NONNULL_END

@@ -71,7 +71,7 @@ NSTimeInterval slk_durationForBounceParameter(BOOL bounce) {
     }
 }
 
-- (NSArray *)slk_constraintsForAttribute:(NSLayoutAttribute)attribute
+- (NSArray<__kindof NSLayoutConstraint *> *)slk_constraintsForAttribute:(NSLayoutAttribute)attribute
 {
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"firstAttribute = %d", attribute];
     return [self.constraints filteredArrayUsingPredicate:predicate];

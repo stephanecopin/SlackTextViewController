@@ -16,9 +16,13 @@
 
 #import <UIKit/UIKit.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface SLKInputAccessoryView : UIView
 
 /* The system keyboard view used as reference. */
 @property (nonatomic, weak, readonly) UIView *keyboardViewProxy;
 
 @end
+
+NS_ASSUME_NONNULL_END
