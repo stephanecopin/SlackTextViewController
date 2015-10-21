@@ -17,6 +17,8 @@
 #import <UIKit/UIKit.h>
 #import "SLKTypingIndicatorProtocol.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 /** @name A custom view to display an indicator of users typing. */
 @interface SLKTypingIndicatorView : UIView <SLKTypingIndicatorProtocol>
 
@@ -27,13 +29,13 @@
 @property (nonatomic, readwrite) BOOL canResignByTouch;
 
 /** The color of the text. Default is grayColor. */
-@property (nonatomic, strong) UIColor *textColor;
+@property (nonatomic, strong, nullable) UIColor *textColor;
 
 /** The font of the text. Default is system font, 12 pts. */
-@property (nonatomic, strong) UIFont *textFont;
+@property (nonatomic, strong, nullable) UIFont *textFont;
 
 /** The font to be used when matching a username string. Default is system bold font, 12 pts. */
-@property (nonatomic, strong) UIFont *highlightFont;
+@property (nonatomic, strong, nullable) UIFont *highlightFont;
 
 /** The inner padding to use when laying out content in the view. Default is {10, 40, 10, 10}. */
 @property (nonatomic, assign) UIEdgeInsets contentInset;
@@ -63,3 +65,5 @@
 - (void)removeUsername:(NSString *)username;
 
 @end
+
+NS_ASSUME_NONNULL_END

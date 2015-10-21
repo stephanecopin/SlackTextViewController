@@ -28,6 +28,8 @@
 
 #import "SLKUIConstants.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 /**
  UIKeyboard notification replacement, posting reliably only when showing/hiding the keyboard (not when resizing keyboard, or with inputAccessoryView reloads, etc).
  Only triggered when using SLKTextViewController's text view.
@@ -52,13 +54,13 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
                                                                                 UIGestureRecognizerDelegate, UIAlertViewDelegate>
 
 /** The main table view managed by the controller object. Created by default initializing with -init or initWithNibName:bundle: */
-@property (nonatomic, readonly) UITableView *tableView;
+@property (nonatomic, readonly, null_unspecified) UITableView *tableView;
 
 /** The main collection view managed by the controller object. Not nil if the controller is initialised with -initWithCollectionViewLayout: */
-@property (nonatomic, readonly) UICollectionView *collectionView;
+@property (nonatomic, readonly, null_unspecified) UICollectionView *collectionView;
 
 /** The main scroll view managed by the controller object. Not nil if the controller is initialised with -initWithScrollView: */
-@property (nonatomic, readonly) UIScrollView *scrollView;
+@property (nonatomic, readonly, null_unspecified) UIScrollView *scrollView;
 
 /** The bottom toolbar containing a text view and buttons. */
 @property (nonatomic, readonly) SLKTextInputbar *textInputbar;
@@ -181,9 +183,9 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  @param decoder An unarchiver object.
  @return The collectionView style to be used in the new instantiated collectionView.
  */
-+ (UICollectionViewLayout *)collectionViewLayoutForCoder:(NSCoder *)decoder;
++ (nullable UICollectionViewLayout *)collectionViewLayoutForCoder:(NSCoder *)decoder;
 
-+ (UIScrollView *)scrollViewForCoder:(NSCoder *)decoder;
++ (nullable UIScrollView *)scrollViewForCoder:(NSCoder *)decoder;
 
 #pragma mark - Keyboard Handling
 ///------------------------------------------------
@@ -272,7 +274,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  
  @param sender The object calling this method.
  */
-- (void)didPressLeftButton:(id)sender;
+- (void)didPressLeftButton:(nullable id)sender;
 
 /**
  Notifies the view controller when the right button's action has been triggered, manually or by using the keyboard return key.
@@ -281,7 +283,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  
  @param sender The object calling this method.
  */
-- (void)didPressRightButton:(id)sender NS_REQUIRES_SUPER;
+- (void)didPressRightButton:(nullable id)sender NS_REQUIRES_SUPER;
 
 /**
  Verifies if the right button can be pressed. If NO, the button is disabled.
@@ -321,21 +323,21 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  You can override this method to perform additional tasks.
  You MUST call super at some point in your implementation.
  */
-- (void)didPressReturnKey:(id)sender NS_REQUIRES_SUPER;
+- (void)didPressReturnKey:(nullable id)sender NS_REQUIRES_SUPER;
 
 /**
  Notifies the view controller when the user has pressed the Escape key (Esc) with an external keyboard.
  You can override this method to perform additional tasks.
  You MUST call super at some point in your implementation.
  */
-- (void)didPressEscapeKey:(id)sender NS_REQUIRES_SUPER;
+- (void)didPressEscapeKey:(nullable id)sender NS_REQUIRES_SUPER;
 
 /**
  Notifies the view controller when the user has pressed the arrow key with an external keyboard.
  You can override this method to perform additional tasks.
  You MUST call super at some point in your implementation.
  */
-- (void)didPressArrowKey:(id)sender NS_REQUIRES_SUPER;
+- (void)didPressArrowKey:(nullable id)sender NS_REQUIRES_SUPER;
 
 
 #pragma mark - Text Input Bar Adjustment
@@ -380,7 +382,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  
  @param sender The object calling this method.
  */
-- (void)didCommitTextEditing:(id)sender NS_REQUIRES_SUPER;
+- (void)didCommitTextEditing:(nullable id)sender NS_REQUIRES_SUPER;
 
 /**
  Notifies the view controller when the editing bar's right button's action has been triggered, manually or by using the external keyboard's Esc key.
@@ -389,7 +391,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  
  @param sender The object calling this method.
  */
-- (void)didCancelTextEditing:(id)sender NS_REQUIRES_SUPER;
+- (void)didCancelTextEditing:(nullable id)sender NS_REQUIRES_SUPER;
 
 
 #pragma mark - Text Auto-Completion
@@ -404,16 +406,16 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
 @property (nonatomic, readonly, getter = isAutoCompleting) BOOL autoCompleting;
 
 /** The recently found prefix symbol used as prefix for autocompletion mode. */
-@property (nonatomic, readonly, copy) NSString *foundPrefix;
+@property (nonatomic, readonly, copy, nullable) NSString *foundPrefix;
 
 /** The range of the found prefix in the text view content. */
 @property (nonatomic, readonly) NSRange foundPrefixRange;
 
 /** The recently found word at the text view's caret position. */
-@property (nonatomic, readonly, copy) NSString *foundWord;
+@property (nonatomic, readonly, copy, nullable) NSString *foundWord;
 
 /** An array containing all the registered prefix strings for autocompletion. */
-@property (nonatomic, readonly, copy) NSArray *registeredPrefixes;
+@property (nonatomic, readonly, copy, nullable) NSArray<NSString *> *registeredPrefixes;
 
 /**
  Registers any string prefix for autocompletion detection, useful for user mentions and/or hashtags autocompletion.
@@ -431,7 +433,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  You don't need call super since this method doesn't do anything.
 
  @param prefix The detected prefix.
- @param word The derected word.
+ @param word The detected word.
  */
 - (void)didChangeAutoCompletionPrefix:(NSString *)prefix andWord:(NSString *)word;
 
@@ -502,7 +504,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
  
  @return The string key for which to enable text caching.
  */
-- (NSString *)keyForTextCaching;
+- (nullable NSString *)keyForTextCaching;
 
 /**
  Removes the current's vien controller cached text.
@@ -580,3 +582,5 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
 - (void)viewDidLayoutSubviews NS_REQUIRES_SUPER;
 
 @end
+
+NS_ASSUME_NONNULL_END

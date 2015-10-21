@@ -16,6 +16,8 @@
 
 #import <UIKit/UIKit.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 /** @name UIResponder additional features used for SlackTextViewController. */
 @interface UIResponder (SLKAdditions)
 
@@ -27,3 +29,5 @@
 + (instancetype)slk_currentFirstResponder;
 
 @end
+
+NS_ASSUME_NONNULL_END

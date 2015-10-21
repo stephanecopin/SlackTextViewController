@@ -16,6 +16,8 @@
 
 #import "SLKTextView.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 /** @name SLKTextView additional features used for SlackTextViewController. */
 @interface SLKTextView (SLKAdditions)
 
@@ -68,7 +70,7 @@
  @param range Returns the range of the found word.
  @returns The found word.
  */
-- (NSString *)slk_wordAtCaretRange:(NSRangePointer)range;
+- (nullable NSString *)slk_wordAtCaretRange:(NSRangePointer)range;
 
 
 /**
@@ -96,3 +98,5 @@
 + (CGFloat)pointSizeDifferenceForCategory:(NSString *)category;
 
 @end
+
+NS_ASSUME_NONNULL_END

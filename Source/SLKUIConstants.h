@@ -28,6 +28,8 @@
 
 #if __has_attribute(objc_designated_initializer)
     #define SLK_DESIGNATED_INITIALIZER __attribute__((objc_designated_initializer))
+#else
+    #define SLK_DESIGNATED_INITIALIZER
 #endif
 
 static NSString *SLKTextViewControllerDomain = @"com.slack.TextViewController";

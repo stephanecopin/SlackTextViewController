@@ -16,6 +16,8 @@
 
 #import <UIKit/UIKit.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 /** @name UIScrollView additional features used for SlackTextViewController. */
 @interface UIScrollView (SLKAdditions)
 
@@ -46,3 +48,5 @@
 - (void)slk_stopScrolling;
 
 @end
+
+NS_ASSUME_NONNULL_END
